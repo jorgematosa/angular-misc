@@ -45,11 +45,16 @@ export class DurationInputDirective {
 
     const current: string = this.el.nativeElement.value;
     const position = this.el.nativeElement.selectionStart;
-    const next: string = [
+    let next: string = [
       current.slice(0, position),
       event.key === 'Decimal' ? '.' : event.key,
       current.slice(position)
     ].join('');
+
+    // checks if the the whole input is selected
+    if (this.el.nativeElement.selectionStart === 0 && this.el.nativeElement.selectionEnd === current.length) {
+      next = event.key;
+    }
 
     // decimal number validations
     if (
@@ -61,7 +66,7 @@ export class DurationInputDirective {
     }
 
     if (this.mode === 'decimal' && String(next).match(this.decimalRegex)) {
-      if (Number(next) > 23 || Number(next) < -23) {
+      if (Number(next) > 24 || Number(next) < -24) {
         event.preventDefault();
       }
     }
@@ -74,7 +79,7 @@ export class DurationInputDirective {
     if (next && this.mode === 'hours' && String(next).match(this.hoursRegex)) {
       const splitString = next.split(':');
       if (!splitString[1]) {
-        if (Number(splitString[0]) > 23 || Number(splitString[0]) < -23) {
+        if (Number(splitString[0]) > 24 || Number(splitString[0]) < -24) {
           event.preventDefault();
           return;
         }
@@ -113,7 +118,7 @@ export class DurationInputDirective {
   private autoFillData(next, input): string {
     next = next.replace('Enter', '');
     if (this.mode === 'decimal') {
-      if (next === '') {
+      if (next === '' || next === '.') {
         return '0';
       } else if (next.includes('.')) {
         const splitString = next.split('.');
@@ -143,9 +148,11 @@ export class DurationInputDirective {
       } else if (next === '-') {
         return '0';
       }
-      return '0';
+      if (next !== '') {
+        return next;
+      }
     } else {
-      if (next === '') {
+        if (next === '') {
         return '00:00';
       } else if (next.includes(':')) {
         const splitString = next.split(':');
